@@ -6,6 +6,8 @@ const nameForm = welcome.querySelector("#name");
 const roomForm = welcome.querySelector("#roomname");
 const room = document.getElementById("room");
 const h3 = room.querySelector("h3");
+const chat = document.getElementById("chat");
+const chatForm = chat.querySelector("#msg");
 
 // For video
 const myFace = document.getElementById("myFace");
@@ -97,7 +99,8 @@ cameraBtn.addEventListener("click", () => {
          }
      });
 
-room.hidden =true;
+room.hidden = true;
+chat.hidden = true;
 
 let roomName;
 let nickname;
@@ -136,7 +139,7 @@ async function initCall() {
 }
 async function showRoom() {
     welcome.hidden = true;
-    room.hidden = false;
+    chat.hidden = false;
     h3.innerText = `Room ${roomName}`;
     const msgForm = room.querySelector("#msg");
     //const nameForm = room.querySelector("#name");
@@ -162,6 +165,7 @@ socket.on("welcome", async (user, countRoom) => {
     myDataChannel = myPeerConnection.createDataChannel("chat");
     myDataChannel.addEventListener("message", (event) => {
         console.log(event.data);
+        handleReceiveMessage(event.data);
     });
     console.log("made data channel");
     const offer = await myPeerConnection.createOffer();
@@ -177,6 +181,7 @@ socket.on("offer", async (offer) => {
         myDataChannel = event.channel;
         myDataChannel.addEventListener("message", (event) => {
             console.log(event.data);
+            handleReceiveMessage(event.data);
         });
     });
     console.log("received the offer");
@@ -201,6 +206,8 @@ socket.on("bye", (user, countRoom) => {
     // h3.innerText = `Room ${roomName} (${countRoom})`;
     refreshCount(countRoom);
     addMessage(`${user} left 👋🏻`);
+    myPeerConnection.close();
+    
 });
 
 socket.on("new_message", addMessage);
@@ -252,4 +259,27 @@ function handleAddStream(data) {
     console.log("My stream", myStream);
     const peerFace = document.getElementById("peerFace");
     peerFace.srcObject = data.stream;
+}
+
+// Chat Form
+chatForm.addEventListener("submit", handleChatSubmit);
+
+function handleChatSubmit(event) {
+    event.preventDefault();
+    const input = chatForm.querySelector("input");
+    const message = input.value;
+    const ul = chat.querySelector("ul");
+    const li = document.createElement("li");
+    li.innerText = message;
+    ul.appendChild(li);
+    myDataChannel.send(`${nickname} : ${message}`);
+    input.value = "";
+}
+
+function handleReceiveMessage(data) {
+    console.log(data);
+    const ul = chat.querySelector("ul");
+    const li = document.createElement("li");
+    li.innerText = data;
+    ul.appendChild(li);
 }
