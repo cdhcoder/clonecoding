@@ -213,15 +213,16 @@ socket.on("bye", (user, countRoom) => {
 socket.on("new_message", addMessage);
 
 socket.on("room_change", (rooms) => {
-    const roomList = welcome.querySelector("ul");
+    const roomList = document.getElementById("rooms");
     roomList.innerHTML = "";
     if (rooms.length === 0) {
         return;
     }
     rooms.forEach((room) => {
-        const li = document.createElement("li");
-        li.innerText = room;
-        roomList.append(li);
+        const roomBtn = document.createElement("button");
+        roomBtn.classList.add("w-btn");
+        roomBtn.innerText = room;
+        roomList.appendChild(roomBtn);
     });
 });
 
